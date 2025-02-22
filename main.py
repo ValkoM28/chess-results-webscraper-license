@@ -6,6 +6,7 @@
 """
 
 import requests
+import html
 from typing import Iterator, Tuple
 
 
@@ -24,21 +25,23 @@ def main(database_keys:UrlSet) -> Iterator[Tuple[str, str]]:
         raw_page = requests.get(url)
 
         page_html:str = raw_page.text
-        index_tournament = page_html.find("h2")
-        index_license = page_html.find("Creator/Last")
+        index_tournament:int = page_html.find("h2")
+        index_license:int = page_html.find("Creator/Last")
 
-        tournament_string = page_html[index_tournament:index_tournament+55:]
-        temp = tournament_string.find("<")
-        tournament_string = tournament_string[3:temp:]
+        tournament_string:str = page_html[index_tournament:index_tournament+55:]
+        temp:int = tournament_string.find("<")
+        tournament_string:str = tournament_string[3:temp:]
 
-        license_string = page_html[index_license:index_license+55:]
-        temp = license_string.find("<")
-        license_string = license_string[:temp:]
+        license_string:str = page_html[index_license:index_license+55:]
+        temp:int = license_string.find("<")
+        license_string:str = license_string[:temp:]
 
+        temp:str = url
         print(f"{url} examined successfully!")
-        url = database_keys.get_next_url()
 
-        yield tournament_string, license_string
+        url:str = database_keys.get_next_url()
+
+        yield html.unescape(tournament_string), temp, license_string
 
 
 
@@ -50,7 +53,7 @@ if __name__ == "__main__":
 
     output = list(main(urls))
 
-    output_formated = "".join([i[0] + "\n" + i[1] + "\n\n" for i in output])
+    output_formated = "".join([i[0] + "\n" + i[1] + "\n" + i[2] + "\n\n" for i in output])
 
     with open("out.txt", "w", encoding="UTF-8") as file: 
         file.write(output_formated)
