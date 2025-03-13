@@ -7,7 +7,7 @@
 import aiohttp
 import asyncio
 import html
-import requests
+import csv
 from typing import Iterator, Tuple
 
 
@@ -26,15 +26,19 @@ async def fetch_page(session:aiohttp.ClientSession, url:str) -> str:
 
 
 async def process_url(session: aiohttp.ClientSession, url: str) -> Tuple[str, str, str]: 
+    string_length = 55
     raw_page = await fetch_page(session, url)
     index_tournament: int = raw_page.find("h2")
     index_license: int = raw_page.find("Creator/Last")
+    if index_license == -1: 
+        index_license = raw_page.find("Creator")
+        string_length = 100
 
-    tournament_string:str = raw_page[index_tournament:index_tournament+55:]
+    tournament_string:str = raw_page[index_tournament:index_tournament+string_length:]
     temp:int = tournament_string.find("<")
     tournament_string:str = tournament_string[3:temp:]
 
-    license_string:str = raw_page[index_license:index_license+55:]
+    license_string:str = raw_page[index_license:index_license+string_length:]
     temp:int = license_string.find("<")
     license_string:str = license_string[:temp:]
 
@@ -53,10 +57,11 @@ async def main(database_keys:UrlSet):
         
         results = await asyncio.gather(*tasks)
 
-        output_formatted = "".join([f"{result[0]}\n{result[1]}\n{result[2]}\n\n" for result in results])
+        with open("out.csv", "w", newline="", encoding="UTF-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Meno", "Link", "Licencia"])  # Change column names as needed
+            writer.writerows(results)  # Write all rows at once
 
-        with open("out.txt", "w", encoding="UTF-8") as file:
-            file.write(output_formatted)
 
 
 if __name__ == "__main__": 
