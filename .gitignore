@@ -1,2 +1,5 @@
 keys.txt
 out.txt
+
+*.csv
+*.xlsx
